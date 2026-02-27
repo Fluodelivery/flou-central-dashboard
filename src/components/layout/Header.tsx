@@ -2,11 +2,12 @@ import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { riders, alerts } from "@/data/mock-data";
+import { riders, alerts, pendingOrders } from "@/data/mock-data";
 
 export function Header() {
   const activeRiders = riders.filter((r) => r.status !== "offline").length;
   const activeAlerts = alerts.filter((a) => !a.resolved).length;
+  const stalledOrders = pendingOrders.filter((o) => o.minutesWaiting >= 10).length;
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
@@ -31,9 +32,12 @@ export function Header() {
           </div>
           <div className="h-4 w-px bg-border" />
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-warning" />
+            <span className={`h-2 w-2 rounded-full ${stalledOrders > 0 ? "bg-destructive animate-pulse-dot" : "bg-warning"}`} />
             <span className="text-muted-foreground">
-              <span className="font-semibold text-foreground">5</span> Pedidos Pendientes
+              <span className="font-semibold text-foreground">{pendingOrders.length}</span> Pendientes
+              {stalledOrders > 0 && (
+                <span className="text-destructive font-semibold ml-1">({stalledOrders} estancados)</span>
+              )}
             </span>
           </div>
         </div>
