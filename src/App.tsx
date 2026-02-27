@@ -10,6 +10,9 @@ import Fleet from "./pages/Fleet";
 import Clients from "./pages/Clients";
 import Orders from "./pages/Orders";
 import Finance from "./pages/Finance";
+import Metrics from "./pages/Metrics";
+import AuditLog from "./pages/AuditLog";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/clients" element={<Clients />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/finance" element={<Finance />} />
+            <Route path="/metrics" element={<Metrics />} />
+            <Route path="/audit" element={<AuditLog />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>

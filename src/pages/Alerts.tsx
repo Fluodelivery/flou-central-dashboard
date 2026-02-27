@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Phone, MapPin, CheckCircle, XCircle, Clock, Shield } from "lucide-react";
+import { AlertTriangle, Phone, MapPin, CheckCircle, Clock, Shield, StopCircle, Timer } from "lucide-react";
 import { alerts, type Alert } from "@/data/mock-data";
 
 export default function Alerts() {
@@ -21,6 +21,8 @@ export default function Alerts() {
     sos: { label: "SOS", color: "bg-destructive text-destructive-foreground", icon: Shield },
     exception: { label: "Excepción", color: "bg-warning text-warning-foreground", icon: AlertTriangle },
     delay: { label: "Retraso", color: "bg-muted text-muted-foreground", icon: Clock },
+    stalled_order: { label: "Estancado", color: "bg-destructive text-destructive-foreground", icon: Timer },
+    idle_rider: { label: "Detenido", color: "bg-warning text-warning-foreground", icon: StopCircle },
   };
 
   const unresolvedCount = alertList.filter((a) => !a.resolved).length;
@@ -40,7 +42,7 @@ export default function Alerts() {
             {alertList
               .sort((a, b) => {
                 if (a.resolved !== b.resolved) return a.resolved ? 1 : -1;
-                const priority = { sos: 0, exception: 1, delay: 2 };
+                const priority = { sos: 0, stalled_order: 1, idle_rider: 2, exception: 3, delay: 4 };
                 return priority[a.type] - priority[b.type];
               })
               .map((alert) => {
@@ -54,8 +56,10 @@ export default function Alerts() {
                         ? "border-primary bg-primary/5"
                         : alert.resolved
                         ? "border-border bg-muted/30 opacity-60"
-                        : alert.type === "sos"
+                        : alert.type === "sos" || alert.type === "stalled_order"
                         ? "border-destructive/50 bg-destructive/5"
+                        : alert.type === "idle_rider"
+                        ? "border-warning/50 bg-warning/5"
                         : "border-border bg-card"
                     } hover:border-primary/50`}
                   >
@@ -98,29 +102,28 @@ export default function Alerts() {
             </CardHeader>
             <CardContent className="p-4 flex-1">
               <div className="space-y-6">
-                {/* Alert Message */}
                 <div className={`p-4 rounded-lg border ${
-                  selectedAlert.type === "sos" ? "border-destructive/30 bg-destructive/5" : "border-warning/30 bg-warning/5"
+                  selectedAlert.type === "sos" || selectedAlert.type === "stalled_order" ? "border-destructive/30 bg-destructive/5" :
+                  selectedAlert.type === "idle_rider" ? "border-warning/30 bg-warning/5" :
+                  "border-warning/30 bg-warning/5"
                 }`}>
                   <p className="text-sm text-foreground">{selectedAlert.message}</p>
                   <p className="text-xs text-muted-foreground mt-2">{selectedAlert.timestamp} · Pedido {selectedAlert.orderId}</p>
                 </div>
 
-                {/* Contact Info */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-lg border border-border">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Repartidor</p>
                     <p className="text-sm font-medium text-foreground">{selectedAlert.riderName}</p>
-                    <p className="text-xs text-muted-foreground">{selectedAlert.riderPhone}</p>
+                    <p className="text-xs text-muted-foreground">{selectedAlert.riderPhone || "N/A"}</p>
                   </div>
                   <div className="p-3 rounded-lg border border-border">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Cliente / Local</p>
                     <p className="text-sm font-medium text-foreground">Local destino</p>
-                    <p className="text-xs text-muted-foreground">{selectedAlert.clientPhone}</p>
+                    <p className="text-xs text-muted-foreground">{selectedAlert.clientPhone || "N/A"}</p>
                   </div>
                 </div>
 
-                {/* Location */}
                 <div className="p-4 rounded-lg border border-border bg-muted/30">
                   <div className="flex items-center gap-2 mb-2">
                     <MapPin className="h-4 w-4 text-primary" />
@@ -131,17 +134,20 @@ export default function Alerts() {
                   </div>
                 </div>
 
-                {/* Actions */}
                 {!selectedAlert.resolved && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="flex-1 gap-1.5">
-                      <Phone className="h-3.5 w-3.5" />
-                      Llamar a repartidor
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1.5">
-                      <Phone className="h-3.5 w-3.5" />
-                      Notificar al cliente
-                    </Button>
+                    {selectedAlert.riderPhone && (
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5">
+                        <Phone className="h-3.5 w-3.5" />
+                        Llamar a repartidor
+                      </Button>
+                    )}
+                    {selectedAlert.clientPhone && (
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5">
+                        <Phone className="h-3.5 w-3.5" />
+                        Notificar al cliente
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       className="flex-1 gap-1.5"

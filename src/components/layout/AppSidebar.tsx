@@ -5,6 +5,9 @@ import {
   Building2,
   Package,
   DollarSign,
+  Settings,
+  FileText,
+  BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -12,13 +15,15 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import fluoLogo from "@/assets/logo-fluo.png";
 
-const navItems = [
+const mainNav = [
   { title: "Dispatch", url: "/", icon: Radio, label: "Torre de Control" },
   { title: "Alertas SOS", url: "/alerts", icon: AlertTriangle, label: "Centro de Alertas" },
   { title: "Flota", url: "/fleet", icon: Bike, label: "Gestión de Flota" },
@@ -27,16 +32,37 @@ const navItems = [
   { title: "Finanzas", url: "/finance", icon: DollarSign, label: "Liquidaciones" },
 ];
 
+const toolsNav = [
+  { title: "Métricas", url: "/metrics", icon: BarChart3, label: "Métricas de Flota" },
+  { title: "Auditoría", url: "/audit", icon: FileText, label: "Logs de Auditoría" },
+  { title: "Tarifas", url: "/settings", icon: Settings, label: "Configuración de Tarifas" },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
+  const renderNavItems = (items: typeof mainNav) =>
+    items.map((item) => (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton asChild tooltip={item.label}>
+          <NavLink
+            to={item.url}
+            end={item.url === "/"}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            activeClassName="bg-sidebar-accent text-primary font-semibold"
+          >
+            <item.icon className="h-[18px] w-[18px] shrink-0" />
+            {!collapsed && <span className="text-sm truncate">{item.title}</span>}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    ));
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <div className="flex items-center gap-2 px-4 py-5 border-b border-sidebar-border">
-        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <span className="text-primary-foreground font-bold text-sm">F</span>
-        </div>
+      <div className="flex items-center gap-2 px-4 py-4 border-b border-sidebar-border">
+        <img src={fluoLogo} alt="Fluo" className="h-8 w-8 rounded-lg object-contain shrink-0" />
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="text-sidebar-accent-foreground font-bold text-base leading-tight truncate">Fluo Central</h1>
@@ -48,23 +74,14 @@ export function AppSidebar() {
       <SidebarContent className="mt-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.label}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      activeClassName="bg-sidebar-accent text-primary font-semibold"
-                    >
-                      <item.icon className="h-[18px] w-[18px] shrink-0" />
-                      {!collapsed && <span className="text-sm truncate">{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarMenu>{renderNavItems(mainNav)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider px-3">Herramientas</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{renderNavItems(toolsNav)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
