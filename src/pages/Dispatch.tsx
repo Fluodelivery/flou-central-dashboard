@@ -156,35 +156,7 @@ export default function Dispatch() {
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center p-0 relative">
           {mapView === "live" ? (
-            <div className="absolute inset-0 bg-muted/30 flex flex-col items-center justify-center">
-              <div className="relative mb-4">
-                <div className="h-32 w-32 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center">
-                  <div className="h-20 w-20 rounded-full border border-primary/20 flex items-center justify-center">
-                    <Navigation className="h-8 w-8 text-primary/60" />
-                  </div>
-                </div>
-                <div className="absolute top-2 right-4 h-3 w-3 rounded-full bg-success animate-pulse-dot" />
-                <div className="absolute bottom-6 left-2 h-3 w-3 rounded-full bg-warning animate-pulse-dot" />
-                <div className="absolute top-12 left-0 h-3 w-3 rounded-full bg-primary animate-pulse-dot" />
-              </div>
-              {/* Idle rider alert in map */}
-              {idleRiders.length > 0 && (
-                <div className="mb-3 px-3 py-2 rounded-lg bg-warning/10 border border-warning/30 max-w-xs">
-                  <div className="flex items-center gap-1.5 text-warning text-xs font-medium mb-1">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Repartidor(es) detenido(s)
-                  </div>
-                  {idleRiders.map((r) => (
-                    <p key={r.id} className="text-[11px] text-muted-foreground">
-                      {r.name} — {r.idleMinutes} min en {r.lastKnownLocation}
-                    </p>
-                  ))}
-                </div>
-              )}
-              <p className="text-sm font-medium text-muted-foreground">Xalapa, Veracruz</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">Integración con Traccar pendiente</p>
-              <Button variant="outline" size="sm" className="mt-3 text-xs">Conectar Mapa</Button>
-            </div>
+            <LiveMap />
           ) : (
             /* Heatmap View */
             <div className="absolute inset-0 bg-muted/20 p-4 flex flex-col">
