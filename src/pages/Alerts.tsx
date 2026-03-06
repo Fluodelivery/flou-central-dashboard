@@ -1,21 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Phone, MapPin, CheckCircle, Clock, Shield, StopCircle, Timer } from "lucide-react";
-import { alerts, type Alert } from "@/data/mock-data";
+import { AlertTriangle, Phone, MapPin, CheckCircle, Clock, Shield, StopCircle, Timer, Loader2 } from "lucide-react";
 import AlertMiniMap from "@/components/alerts/AlertMiniMap";
+import { useAlerts, type AlertRow } from "@/hooks/useAlerts";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Alerts() {
-  const [alertList, setAlertList] = useState(alerts);
-  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(alertList.find((a) => !a.resolved) || null);
+  const { alerts: alertList, loading, timeAgo } = useAlerts();
+  const [selectedAlert, setSelectedAlert] = useState<AlertRow | null>(null);
 
-  const resolveAlert = (id: string) => {
-    setAlertList((prev) => prev.map((a) => (a.id === id ? { ...a, resolved: true } : a)));
-    if (selectedAlert?.id === id) {
-      setSelectedAlert((prev) => prev ? { ...prev, resolved: true } : null);
+  // Auto-select first unresolved alert
+  useEffect(() => {
+    if (!selectedAlert && alertList.length > 0) {
+      setSelectedAlert(alertList.find((a) => !a.resolved) || alertList[0]);
     }
+  }, [alertList, selectedAlert]);
+
+  // Keep selectedAlert in sync with realtime updates
+  useEffect(() => {
+    if (selectedAlert) {
+      const updated = alertList.find((a) => a.id === selectedAlert.id);
+      if (updated && updated !== selectedAlert) {
+        setSelectedAlert(updated);
+      }
+    }
+  }, [alertList, selectedAlert]);
+
+  const resolveAlert = async (id: string) => {
+    await supabase.from("alerts").update({ resolved: true }).eq("id", id);
   };
 
   const typeConfig = {
@@ -27,6 +42,20 @@ export default function Alerts() {
   };
 
   const unresolvedCount = alertList.filter((a) => !a.resolved).length;
+
+  const sortedAlerts = [...alertList].sort((a, b) => {
+    if (a.resolved !== b.resolved) return a.resolved ? 1 : -1;
+    const priority: Record<string, number> = { sos: 0, stalled_order: 1, idle_rider: 2, exception: 3, delay: 4 };
+    return (priority[a.type] ?? 5) - (priority[b.type] ?? 5);
+  });
+
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-7rem)] flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-7rem)] grid grid-cols-[360px_1fr] gap-3">
@@ -40,14 +69,9 @@ export default function Alerts() {
         </CardHeader>
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-2">
-            {alertList
-              .sort((a, b) => {
-                if (a.resolved !== b.resolved) return a.resolved ? 1 : -1;
-                const priority = { sos: 0, stalled_order: 1, idle_rider: 2, exception: 3, delay: 4 };
-                return priority[a.type] - priority[b.type];
-              })
-              .map((alert) => {
-                const config = typeConfig[alert.type];
+            {sortedAlerts.map((alert) => {
+                const config = typeConfig[alert.type as keyof typeof typeConfig];
+                if (!config) return null;
                 return (
                   <div
                     key={alert.id}
@@ -71,10 +95,10 @@ export default function Alerts() {
                       </Badge>
                       <div className="flex items-center gap-1.5">
                         {alert.resolved && <CheckCircle className="h-3.5 w-3.5 text-success" />}
-                        <span className="text-[10px] text-muted-foreground">{alert.timestamp}</span>
+                        <span className="text-[10px] text-muted-foreground">{timeAgo(alert.created_at)}</span>
                       </div>
                     </div>
-                    <p className="text-xs font-medium text-foreground mb-1">{alert.riderName}</p>
+                    <p className="text-xs font-medium text-foreground mb-1">{alert.rider_name}</p>
                     <p className="text-[11px] text-muted-foreground line-clamp-2">{alert.message}</p>
                     <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
                       <MapPin className="h-3 w-3" />
@@ -109,19 +133,19 @@ export default function Alerts() {
                   "border-warning/30 bg-warning/5"
                 }`}>
                   <p className="text-sm text-foreground">{selectedAlert.message}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{selectedAlert.timestamp} · Pedido {selectedAlert.orderId}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{timeAgo(selectedAlert.created_at)} · Pedido {selectedAlert.order_id}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-lg border border-border">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Repartidor</p>
-                    <p className="text-sm font-medium text-foreground">{selectedAlert.riderName}</p>
-                    <p className="text-xs text-muted-foreground">{selectedAlert.riderPhone || "N/A"}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedAlert.rider_name}</p>
+                    <p className="text-xs text-muted-foreground">{selectedAlert.rider_phone || "N/A"}</p>
                   </div>
                   <div className="p-3 rounded-lg border border-border">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Cliente / Local</p>
                     <p className="text-sm font-medium text-foreground">Local destino</p>
-                    <p className="text-xs text-muted-foreground">{selectedAlert.clientPhone || "N/A"}</p>
+                    <p className="text-xs text-muted-foreground">{selectedAlert.client_phone || "N/A"}</p>
                   </div>
                 </div>
 
@@ -130,18 +154,18 @@ export default function Alerts() {
                     <MapPin className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-foreground">{selectedAlert.location}</p>
                   </div>
-                  <AlertMiniMap riderId={selectedAlert.riderId} />
+                  <AlertMiniMap riderId={selectedAlert.rider_id} />
                 </div>
 
                 {!selectedAlert.resolved && (
                   <div className="flex gap-2">
-                    {selectedAlert.riderPhone && (
+                    {selectedAlert.rider_phone && (
                       <Button size="sm" variant="outline" className="flex-1 gap-1.5">
                         <Phone className="h-3.5 w-3.5" />
                         Llamar a repartidor
                       </Button>
                     )}
-                    {selectedAlert.clientPhone && (
+                    {selectedAlert.client_phone && (
                       <Button size="sm" variant="outline" className="flex-1 gap-1.5">
                         <Phone className="h-3.5 w-3.5" />
                         Notificar al cliente
