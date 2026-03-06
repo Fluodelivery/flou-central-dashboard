@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Phone, MapPin, CheckCircle, Clock, Shield, StopCircle, Timer } from "lucide-react";
 import { alerts, type Alert } from "@/data/mock-data";
+import AlertMiniMap from "@/components/alerts/AlertMiniMap";
 
 export default function Alerts() {
   const [alertList, setAlertList] = useState(alerts);
