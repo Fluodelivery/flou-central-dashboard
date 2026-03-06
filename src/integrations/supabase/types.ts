@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          client_phone: string | null
+          created_at: string
+          id: string
+          location: string
+          message: string
+          order_id: string | null
+          resolved: boolean
+          rider_id: string
+          rider_name: string
+          rider_phone: string | null
+          type: string
+        }
+        Insert: {
+          client_phone?: string | null
+          created_at?: string
+          id: string
+          location: string
+          message: string
+          order_id?: string | null
+          resolved?: boolean
+          rider_id?: string
+          rider_name?: string
+          rider_phone?: string | null
+          type?: string
+        }
+        Update: {
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          message?: string
+          order_id?: string | null
+          resolved?: boolean
+          rider_id?: string
+          rider_name?: string
+          rider_phone?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       rider_locations: {
         Row: {
           heading: number | null
