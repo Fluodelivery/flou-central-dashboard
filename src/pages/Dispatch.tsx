@@ -6,7 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Clock, User, Navigation, Package, AlertTriangle, Flame } from "lucide-react";
 import LiveMap from "@/components/dispatch/LiveMap";
-import { pendingOrders, riders, heatmapZones, type PendingOrder } from "@/data/mock-data";
+import { useRiderLocations } from "@/hooks/useRiderLocations";
+import { pendingOrders, heatmapZones, type PendingOrder } from "@/data/mock-data";
 
 const STALLED_THRESHOLD = 10; // minutes
 
@@ -15,6 +16,7 @@ export default function Dispatch() {
   const [draggedOrder, setDraggedOrder] = useState<PendingOrder | null>(null);
   const [assignedOrders, setAssignedOrders] = useState<Record<string, string>>({});
   const [mapView, setMapView] = useState<"live" | "heatmap">("live");
+  const { locations: riderLocations, loading: ridersLoading } = useRiderLocations();
 
   const handleDragStart = (order: PendingOrder) => {
     setDraggedOrder(order);
@@ -28,22 +30,24 @@ export default function Dispatch() {
     }
   };
 
-  const statusColor = {
+  const statusColor: Record<string, string> = {
     available: "bg-success",
     on_route: "bg-warning",
     paused: "bg-muted-foreground",
     offline: "bg-border",
+    sos: "bg-destructive",
   };
 
-  const statusLabel = {
+  const statusLabel: Record<string, string> = {
     available: "Disponible",
     on_route: "En ruta",
     paused: "En pausa",
     offline: "Desconectado",
+    sos: "🚨 SOS",
   };
 
   const stalledOrders = orders.filter((o) => o.minutesWaiting >= STALLED_THRESHOLD);
-  const idleRiders = riders.filter((r) => r.idleMinutes && r.idleMinutes >= 10);
+  const activeRiders = riderLocations.filter((r) => r.status !== "offline");
 
   const intensityColor = {
     low: "bg-primary/20 text-primary",
@@ -202,71 +206,93 @@ export default function Dispatch() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold">🛵 Flota Activa</CardTitle>
             <Badge variant="secondary" className="text-xs">
-              {riders.filter((r) => r.status !== "offline").length}
+              {activeRiders.length}
             </Badge>
           </div>
         </CardHeader>
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1.5">
-            {riders
-              .filter((r) => r.status !== "offline")
-              .map((rider) => {
-                const isIdle = rider.idleMinutes && rider.idleMinutes >= 10;
-                return (
-                  <div
-                    key={rider.id}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.add("ring-2", "ring-primary");
-                    }}
-                    onDragLeave={(e) => {
-                      e.currentTarget.classList.remove("ring-2", "ring-primary");
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.remove("ring-2", "ring-primary");
-                      handleDrop(rider.id);
-                    }}
-                    className={`p-3 rounded-lg border transition-all ${
-                      isIdle ? "border-warning/50 bg-warning/5" : "border-border bg-card hover:bg-muted/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <span className="text-xs font-semibold text-foreground">{rider.avatar}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{rider.name}</p>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`h-1.5 w-1.5 rounded-full ${statusColor[rider.status]}`} />
-                          <span className="text-[10px] text-muted-foreground">{statusLabel[rider.status]}</span>
-                          {rider.currentOrder && (
-                            <span className="text-[10px] text-primary font-mono">· {rider.currentOrder}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-muted-foreground">⭐ {rider.rating}</p>
+            {activeRiders.map((rider) => {
+              const isSos = rider.status === "sos";
+              const isStopped = rider.speed === 0 || rider.speed === null;
+              const initials = rider.rider_name
+                ? rider.rider_name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+                : rider.rider_id.slice(0, 2).toUpperCase();
+              const lastUpdate = new Date(rider.updated_at).toLocaleTimeString("es-MX", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              return (
+                <div
+                  key={rider.rider_id}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add("ring-2", "ring-primary");
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove("ring-2", "ring-primary");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("ring-2", "ring-primary");
+                    handleDrop(rider.rider_id);
+                  }}
+                  className={`p-3 rounded-lg border transition-all ${
+                    isSos
+                      ? "border-destructive/50 bg-destructive/5 animate-pulse"
+                      : "border-border bg-card hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                      isSos ? "bg-destructive/20" : "bg-muted"
+                    }`}>
+                      <span className={`text-xs font-semibold ${isSos ? "text-destructive" : "text-foreground"}`}>
+                        {initials}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">
+                        {rider.rider_name || rider.rider_id}
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-1.5 w-1.5 rounded-full ${statusColor[rider.status] || "bg-muted"}`} />
+                        <span className={`text-[10px] ${isSos ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                          {statusLabel[rider.status] || rider.status}
+                        </span>
                       </div>
                     </div>
-                    {/* Idle rider warning */}
-                    {isIdle && (
-                      <div className="mt-2 px-2 py-1 rounded bg-warning/10 text-[10px] text-warning font-medium flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        Detenido {rider.idleMinutes} min — {rider.lastKnownLocation}
-                      </div>
-                    )}
-                    {/* Show recently assigned */}
-                    {Object.entries(assignedOrders)
-                      .filter(([, rId]) => rId === rider.id)
-                      .map(([orderId]) => (
-                        <div key={orderId} className="mt-2 px-2 py-1 rounded bg-primary/10 text-[10px] text-primary font-medium">
-                          ✓ Asignado: {orderId}
-                        </div>
-                      ))}
+                    <div className="text-right">
+                      <p className="text-[10px] text-muted-foreground">
+                        {isStopped ? "Detenido" : `${rider.speed?.toFixed(0)} km/h`}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{lastUpdate}</p>
+                    </div>
                   </div>
-                );
-              })}
+                  {/* SOS alert */}
+                  {isSos && (
+                    <div className="mt-2 px-2 py-1 rounded bg-destructive/10 text-[10px] text-destructive font-medium flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Alerta SOS activa
+                    </div>
+                  )}
+                  {/* Show recently assigned */}
+                  {Object.entries(assignedOrders)
+                    .filter(([, rId]) => rId === rider.rider_id)
+                    .map(([orderId]) => (
+                      <div key={orderId} className="mt-2 px-2 py-1 rounded bg-primary/10 text-[10px] text-primary font-medium">
+                        ✓ Asignado: {orderId}
+                      </div>
+                    ))}
+                </div>
+              );
+            })}
+            {activeRiders.length === 0 && !ridersLoading && (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <User className="h-8 w-8 mb-2 opacity-40" />
+                <p className="text-xs">Sin repartidores activos</p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </Card>
