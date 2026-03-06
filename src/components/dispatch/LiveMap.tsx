@@ -12,6 +12,7 @@ const statusColors: Record<string, string> = {
   on_route: "#f59e0b",
   paused: "#94a3b8",
   offline: "#cbd5e1",
+  sos: "#ef4444",
 };
 
 const statusLabels: Record<string, string> = {
@@ -19,21 +20,29 @@ const statusLabels: Record<string, string> = {
   on_route: "En ruta",
   paused: "En pausa",
   offline: "Desconectado",
+  sos: "🚨 SOS",
 };
 
 function createRiderIcon(status: string) {
   const color = statusColors[status] || "#3b82f6";
+  const isSos = status === "sos";
+  const size = isSos ? 40 : 32;
+  const emoji = isSos ? "🚨" : "🛵";
+  const pulse = isSos
+    ? "animation: sos-pulse 1s ease-in-out infinite;"
+    : "";
   return L.divIcon({
     className: "rider-marker",
     html: `<div style="
-      width: 32px; height: 32px; border-radius: 50%;
-      background: ${color}; border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      width: ${size}px; height: ${size}px; border-radius: 50%;
+      background: ${color}; border: 3px solid ${isSos ? "#fca5a5" : "white"};
+      box-shadow: 0 0 ${isSos ? "16px 4px rgba(239,68,68,0.5)" : "8px rgba(0,0,0,0.3)"};
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-    ">🛵</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+      font-size: ${isSos ? 18 : 14}px;
+      ${pulse}
+    ">${emoji}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 }
 
@@ -105,15 +114,18 @@ export default function LiveMap() {
       {/* Legend bar */}
       <div className="absolute top-2 left-2 z-[1000] flex items-center gap-2 bg-card/90 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-border shadow-sm">
         <span className="text-[10px] font-semibold text-foreground">Estado:</span>
-        {Object.entries(statusLabels).filter(([k]) => k !== "offline").map(([key, label]) => (
+        {Object.entries(statusLabels).filter(([k]) => k !== "offline").map(([key, label]) => {
+          const isSos = key === "sos";
+          return (
           <div key={key} className="flex items-center gap-1">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className={`h-2.5 w-2.5 rounded-full ${isSos ? "animate-pulse" : ""}`}
               style={{ background: statusColors[key] }}
             />
-            <span className="text-[10px] text-muted-foreground">{label}</span>
+            <span className={`text-[10px] ${isSos ? "text-destructive font-semibold" : "text-muted-foreground"}`}>{label}</span>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Rider count */}
