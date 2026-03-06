@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Phone, MapPin, CheckCircle, Clock, Shield, StopCircle, Timer } from "lucide-react";
 import { alerts, type Alert } from "@/data/mock-data";
+import AlertMiniMap from "@/components/alerts/AlertMiniMap";
 
 export default function Alerts() {
   const [alertList, setAlertList] = useState(alerts);
@@ -129,9 +130,7 @@ export default function Alerts() {
                     <MapPin className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-foreground">{selectedAlert.location}</p>
                   </div>
-                  <div className="h-40 rounded-md bg-muted flex items-center justify-center">
-                    <p className="text-xs text-muted-foreground">Mapa de ubicación (Traccar)</p>
-                  </div>
+                  <AlertMiniMap riderId={selectedAlert.riderId} />
                 </div>
 
                 {!selectedAlert.resolved && (
