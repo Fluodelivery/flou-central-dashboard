@@ -2,11 +2,13 @@ import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { riders, alerts, pendingOrders } from "@/data/mock-data";
+import { useRiderLocations } from "@/hooks/useRiderLocations";
+import { pendingOrders } from "@/data/mock-data";
 
 export function Header() {
-  const activeRiders = riders.filter((r) => r.status !== "offline").length;
-  const activeAlerts = alerts.filter((a) => !a.resolved).length;
+  const { locations } = useRiderLocations();
+  const activeRiders = locations.filter((r) => r.status !== "offline").length;
+  const activeAlerts = locations.filter((r) => r.status === "sos").length;
   const stalledOrders = pendingOrders.filter((o) => o.minutesWaiting >= 10).length;
 
   return (
