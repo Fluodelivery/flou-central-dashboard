@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Clock, User, Navigation, Package, AlertTriangle, Flame } from "lucide-react";
+import LiveMap from "@/components/dispatch/LiveMap";
 import { pendingOrders, riders, heatmapZones, type PendingOrder } from "@/data/mock-data";
 
 const STALLED_THRESHOLD = 10; // minutes
