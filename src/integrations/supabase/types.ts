@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      rider_locations: {
+        Row: {
+          heading: number | null
+          id: string
+          lat: number
+          lng: number
+          rider_id: string
+          rider_name: string | null
+          speed: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          heading?: number | null
+          id?: string
+          lat: number
+          lng: number
+          rider_id: string
+          rider_name?: string | null
+          speed?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          heading?: number | null
+          id?: string
+          lat?: number
+          lng?: number
+          rider_id?: string
+          rider_name?: string | null
+          speed?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
