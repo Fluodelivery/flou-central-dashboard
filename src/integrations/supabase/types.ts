@@ -56,6 +56,41 @@ export type Database = {
         }
         Relationships: []
       }
+      rider_documents: {
+        Row: {
+          doc_type: string
+          file_name: string | null
+          file_url: string
+          id: string
+          rider_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          doc_type: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          rider_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          doc_type?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          rider_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_documents_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rider_locations: {
         Row: {
           heading: number | null
@@ -89,6 +124,54 @@ export type Database = {
           speed?: number | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      riders: {
+        Row: {
+          avatar: string | null
+          circulation_card: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          rating: number
+          status: string
+          vehicle_id: string | null
+          vehicle_model: string | null
+          vehicle_plates: string | null
+          vehicle_year: number | null
+        }
+        Insert: {
+          avatar?: string | null
+          circulation_card?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          name: string
+          phone?: string | null
+          rating?: number
+          status?: string
+          vehicle_id?: string | null
+          vehicle_model?: string | null
+          vehicle_plates?: string | null
+          vehicle_year?: number | null
+        }
+        Update: {
+          avatar?: string | null
+          circulation_card?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          rating?: number
+          status?: string
+          vehicle_id?: string | null
+          vehicle_model?: string | null
+          vehicle_plates?: string | null
+          vehicle_year?: number | null
         }
         Relationships: []
       }
