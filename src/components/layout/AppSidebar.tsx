@@ -49,10 +49,10 @@ export function AppSidebar() {
           <NavLink
             to={item.url}
             end={item.url === "/"}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sidebar-foreground transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             activeClassName="bg-sidebar-accent text-primary font-semibold"
           >
-            <item.icon className="h-[18px] w-[18px] shrink-0" />
+            <item.icon className="h-[18px] w-[18px] shrink-0 stroke-[1.5]" />
             {!collapsed && <span className="text-sm truncate">{item.title}</span>}
           </NavLink>
         </SidebarMenuButton>
@@ -60,9 +60,9 @@ export function AppSidebar() {
     ));
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="glass-sidebar border-r-0">
       <div className="flex items-center gap-2 px-4 py-4 border-b border-sidebar-border">
-        <img src={fluoLogo} alt="Fluo" className="h-8 w-8 rounded-lg object-contain shrink-0" />
+        <img src={fluoLogo} alt="Fluo" className="h-8 w-8 rounded-xl object-contain shrink-0" />
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="text-sidebar-accent-foreground font-bold text-base leading-tight truncate">Fluo Central</h1>
@@ -89,7 +89,7 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="mt-auto p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center">
+            <div className="h-8 w-8 rounded-xl bg-sidebar-accent flex items-center justify-center">
               <span className="text-xs font-medium text-sidebar-accent-foreground">OP</span>
             </div>
             <div className="overflow-hidden">

@@ -12,10 +12,10 @@ export function Header() {
   const stalledOrders = pendingOrders.filter((o) => o.minutesWaiting >= 10).length;
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
+    <header className="h-14 glass-lg rounded-none border-b border-border flex items-center justify-between px-5 shrink-0">
       <div className="flex items-center gap-3">
         <SidebarTrigger>
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5 stroke-[1.5]" />
         </SidebarTrigger>
 
         <div className="hidden sm:flex items-center gap-4 text-sm">
@@ -46,10 +46,10 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="relative rounded-xl">
+          <Bell className="h-4 w-4 stroke-[1.5]" />
           {activeAlerts > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-destructive text-destructive-foreground">
+            <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-destructive text-destructive-foreground rounded-full">
               {activeAlerts}
             </Badge>
           )}
