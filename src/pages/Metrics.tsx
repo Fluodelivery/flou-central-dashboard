@@ -2,6 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { riders, historicalOrders, riderFinances, clientBalances, corporateClients } from "@/data/mock-data";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -9,8 +12,12 @@ import {
 } from "recharts";
 import {
   Bike, Package, TrendingUp, TrendingDown, Users, Clock, DollarSign,
-  Target, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus,
+  Target, AlertTriangle, Zap, ArrowUpRight, ArrowDownRight, Minus, CalendarIcon,
 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 // ===== SIMULATED HISTORICAL DATA (30 days) =====
 const dailyData = Array.from({ length: 30 }, (_, i) => {
