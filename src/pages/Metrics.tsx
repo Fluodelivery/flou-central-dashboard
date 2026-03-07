@@ -12,8 +12,10 @@ import {
 } from "recharts";
 import {
   Bike, Package, TrendingUp, Users, Clock, DollarSign,
-  Target, Zap, ArrowUpRight, ArrowDownRight, Minus, CalendarIcon,
+  Target, Zap, ArrowUpRight, ArrowDownRight, Minus, CalendarIcon, Download,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { exportToCSV, exportToExcel, exportToPDF, exportToDoc } from "@/lib/export-utils";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
