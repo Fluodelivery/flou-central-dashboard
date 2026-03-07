@@ -103,29 +103,6 @@ const hourlyDist = [
   { hour: "19-20", orders: 50 }, { hour: "20-21", orders: 38 }, { hour: "21-22", orders: 18 },
 ];
 
-// Statistical helpers
-const mean = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
-const stdDev = (arr: number[]) => {
-  const m = mean(arr);
-  return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length);
-};
-
-const completedArr = dailyData.map(d => d.completed);
-const revenueArr = dailyData.map(d => d.revenue);
-const avgTimeArr = dailyData.map(d => d.avgTime);
-const stats = {
-  avgOrders: mean(completedArr),
-  stdOrders: stdDev(completedArr),
-  avgRevenue: mean(revenueArr),
-  stdRevenue: stdDev(revenueArr),
-  avgTime: mean(avgTimeArr),
-  stdTime: stdDev(avgTimeArr),
-  totalOrders30d: completedArr.reduce((a, b) => a + b, 0),
-  totalRevenue30d: revenueArr.reduce((a, b) => a + b, 0),
-  peakDay: Math.max(...completedArr),
-  lowDay: Math.min(...completedArr),
-};
-
 const fmt = (n: number) => `$${n.toLocaleString("es-MX", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 const fmtDec = (n: number) => `$${n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -135,21 +112,126 @@ const TrendBadge = ({ value, suffix = "%" }: { value: number; suffix?: string })
   return <Badge className="text-[10px] bg-muted text-muted-foreground border-0 gap-0.5"><Minus className="h-3 w-3" />0{suffix}</Badge>;
 };
 
+const PRESETS = [
+  { label: "7 días", days: 7 },
+  { label: "14 días", days: 14 },
+  { label: "30 días", days: 30 },
+  { label: "60 días", days: 60 },
+  { label: "90 días", days: 90 },
+];
+
 export default function Metrics() {
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(new Date(2026, 1, 5)); // Feb 5
+  const [dateTo, setDateTo] = useState<Date | undefined>(new Date(2026, 2, 7)); // Mar 7
+
+  const setPreset = (days: number) => {
+    const to = new Date(2026, 2, 7);
+    const from = new Date(to);
+    from.setDate(from.getDate() - days + 1);
+    setDateFrom(from);
+    setDateTo(to);
+  };
+
+  const dailyData = useMemo(() => {
+    return allDailyData.filter(d => {
+      if (dateFrom && d.fullDate < dateFrom) return false;
+      if (dateTo) {
+        const endOfDay = new Date(dateTo);
+        endOfDay.setHours(23, 59, 59);
+        if (d.fullDate > endOfDay) return false;
+      }
+      return true;
+    });
+  }, [dateFrom, dateTo]);
+
+  const daysInRange = dailyData.length || 1;
+
+  const completedArr = dailyData.map(d => d.completed);
+  const revenueArr = dailyData.map(d => d.revenue);
+  const avgTimeArr = dailyData.map(d => d.avgTime);
+  const stats = {
+    avgOrders: mean(completedArr),
+    stdOrders: stdDev(completedArr),
+    avgRevenue: mean(revenueArr),
+    stdRevenue: stdDev(revenueArr),
+    avgTime: mean(avgTimeArr),
+    stdTime: stdDev(avgTimeArr),
+    totalOrders: completedArr.reduce((a, b) => a + b, 0),
+    totalRevenue: revenueArr.reduce((a, b) => a + b, 0),
+    peakDay: Math.max(...(completedArr.length ? completedArr : [0])),
+    lowDay: Math.min(...(completedArr.length ? completedArr : [0])),
+  };
+
   const totalRiders = riders.filter((r) => r.status !== "offline").length;
   const onRouteRiders = riders.filter((r) => r.status === "on_route").length;
   const utilizationPct = totalRiders > 0 ? Math.round((onRouteRiders / totalRiders) * 100) : 0;
-  const last7 = dailyData.slice(-7);
-  const prev7 = dailyData.slice(-14, -7);
-  const ordersWoW = ((mean(last7.map(d => d.completed)) - mean(prev7.map(d => d.completed))) / mean(prev7.map(d => d.completed))) * 100;
-  const revenueWoW = ((mean(last7.map(d => d.revenue)) - mean(prev7.map(d => d.revenue))) / mean(prev7.map(d => d.revenue))) * 100;
-  const timeWoW = ((mean(last7.map(d => d.avgTime)) - mean(prev7.map(d => d.avgTime))) / mean(prev7.map(d => d.avgTime))) * 100;
+
+  const halfIdx = Math.floor(dailyData.length / 2);
+  const recentHalf = dailyData.slice(halfIdx);
+  const olderHalf = dailyData.slice(0, halfIdx);
+  const ordersWoW = olderHalf.length > 0 ? ((mean(recentHalf.map(d => d.completed)) - mean(olderHalf.map(d => d.completed))) / mean(olderHalf.map(d => d.completed))) * 100 : 0;
+  const revenueWoW = olderHalf.length > 0 ? ((mean(recentHalf.map(d => d.revenue)) - mean(olderHalf.map(d => d.revenue))) / mean(olderHalf.map(d => d.revenue))) * 100 : 0;
+  const timeWoW = olderHalf.length > 0 ? ((mean(recentHalf.map(d => d.avgTime)) - mean(olderHalf.map(d => d.avgTime))) / mean(olderHalf.map(d => d.avgTime))) * 100 : 0;
+
+  const rangeLabel = dateFrom && dateTo
+    ? `${format(dateFrom, "d MMM", { locale: es })} — ${format(dateTo, "d MMM yyyy", { locale: es })}`
+    : "Selecciona rango";
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-bold text-foreground">📊 Centro de Inteligencia Operativa</h2>
-        <p className="text-sm text-muted-foreground">Estadísticas avanzadas para decisiones a corto, mediano y largo plazo</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">📊 Centro de Inteligencia Operativa</h2>
+          <p className="text-sm text-muted-foreground">Estadísticas avanzadas • {daysInRange} días seleccionados</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {PRESETS.map((p) => (
+            <Button
+              key={p.days}
+              variant="outline"
+              size="sm"
+              className={cn("text-xs h-7", daysInRange === p.days && "bg-primary text-primary-foreground")}
+              onClick={() => setPreset(p.days)}
+            >
+              {p.label}
+            </Button>
+          ))}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                Desde
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={dateFrom}
+                onSelect={setDateFrom}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-7 gap-1">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                Hasta
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={dateTo}
+                onSelect={setDateTo}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <Badge variant="outline" className="text-[10px] h-7 px-2">{rangeLabel}</Badge>
+        </div>
       </div>
 
       {/* KPIs principales */}
@@ -158,7 +240,7 @@ export default function Metrics() {
           { label: "Pedidos/día (μ)", value: stats.avgOrders.toFixed(1), icon: Package, desc: `σ=${stats.stdOrders.toFixed(1)}`, trend: ordersWoW },
           { label: "Tiempo entrega (μ)", value: `${stats.avgTime.toFixed(0)} min`, icon: Clock, desc: `σ=${stats.stdTime.toFixed(1)} min`, trend: timeWoW, invertTrend: true },
           { label: "Revenue diario (μ)", value: fmt(stats.avgRevenue), icon: DollarSign, desc: `σ=${fmt(stats.stdRevenue)}`, trend: revenueWoW },
-          { label: "Total 30 días", value: stats.totalOrders30d.toLocaleString(), icon: TrendingUp, desc: fmt(stats.totalRevenue30d), trend: null },
+          { label: `Total ${daysInRange}d`, value: stats.totalOrders.toLocaleString(), icon: TrendingUp, desc: fmt(stats.totalRevenue), trend: null },
           { label: "Utilización flota", value: `${utilizationPct}%`, icon: Bike, desc: `${onRouteRiders}/${totalRiders} activos`, trend: null },
           { label: "Costo/entrega (μ)", value: fmtDec(mean(dailyData.map(d => d.costPerDelivery))), icon: Target, desc: "Operativo unitario", trend: null },
         ].map((kpi) => (
