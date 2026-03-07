@@ -12,8 +12,10 @@ import {
 } from "recharts";
 import {
   Bike, Package, TrendingUp, Users, Clock, DollarSign,
-  Target, Zap, ArrowUpRight, ArrowDownRight, Minus, CalendarIcon,
+  Target, Zap, ArrowUpRight, ArrowDownRight, Minus, CalendarIcon, Download,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { exportToCSV, exportToExcel, exportToPDF, exportToDoc } from "@/lib/export-utils";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -163,6 +165,21 @@ export default function Metrics() {
     ? `${format(dateFrom, "d MMM", { locale: es })} — ${format(dateTo, "d MMM yy", { locale: es })}`
     : "Selecciona rango";
 
+  const buildExportData = () => ({
+    title: `Métricas Operativas — ${rangeLabel}`,
+    dateRange: rangeLabel,
+    headers: ["Fecha", "Completados", "Cancelados", "Devueltos", "Total", "Revenue", "Tiempo prom (min)", "SLA %", "Costo/entrega", "Utilización %"],
+    rows: dailyData.map(d => [d.date, d.completed, d.cancelled, d.returned, d.total, d.revenue, d.avgTime, d.slaCompliance, d.costPerDelivery, d.riderUtilization]),
+  });
+
+  const handleExport = (type: "csv" | "xlsx" | "pdf" | "doc") => {
+    const data = buildExportData();
+    if (type === "csv") exportToCSV(data);
+    else if (type === "xlsx") exportToExcel(data);
+    else if (type === "pdf") exportToPDF(data);
+    else exportToDoc(data);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header + Date Filter */}
@@ -206,6 +223,20 @@ export default function Metrics() {
             </PopoverContent>
           </Popover>
           <Badge variant="outline" className="text-[10px] h-7 px-2">{rangeLabel}</Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="default" size="sm" className="text-xs h-7 gap-1 px-3">
+                <Download className="h-3 w-3" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("xlsx")} className="text-xs gap-2">📊 Excel (.xlsx)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv")} className="text-xs gap-2">📄 CSV (.csv)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")} className="text-xs gap-2">📕 PDF (.pdf)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("doc")} className="text-xs gap-2">📝 Word (.doc)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
