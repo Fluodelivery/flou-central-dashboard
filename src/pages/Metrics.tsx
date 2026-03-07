@@ -19,10 +19,10 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-// ===== SIMULATED HISTORICAL DATA (30 days) =====
-const dailyData = Array.from({ length: 30 }, (_, i) => {
-  const day = 30 - i;
-  const date = new Date(2026, 1, day); // Feb 2026
+// ===== SIMULATED HISTORICAL DATA (90 days) =====
+const allDailyData = Array.from({ length: 90 }, (_, i) => {
+  const dateObj = new Date(2026, 2, 7); // Mar 7, 2026
+  dateObj.setDate(dateObj.getDate() - (89 - i));
   const base = 38 + Math.round(Math.sin(i * 0.5) * 12 + Math.random() * 8);
   const completed = Math.max(20, base);
   const cancelled = Math.round(completed * (0.03 + Math.random() * 0.04));
@@ -31,8 +31,9 @@ const dailyData = Array.from({ length: 30 }, (_, i) => {
   const avgTime = 22 + Math.round(Math.random() * 12);
   const slaCompliance = 85 + Math.round(Math.random() * 12);
   return {
-    date: `${date.getDate()}/${date.getMonth() + 1}`,
-    day: date.getDate(),
+    fullDate: new Date(dateObj),
+    date: `${dateObj.getDate()}/${dateObj.getMonth() + 1}`,
+    day: dateObj.getDate(),
     completed,
     cancelled,
     returned,
