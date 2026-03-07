@@ -1,34 +1,83 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { dynamicRates, type DynamicRate } from "@/data/mock-data";
-import { Settings as SettingsIcon, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useWeather } from "@/hooks/useWeather";
+import { CloudRain, Sun, RefreshCw, Loader2 } from "lucide-react";
 
 export default function Settings() {
-  const [rates, setRates] = useState(dynamicRates);
   const [stalledThreshold, setStalledThreshold] = useState(10);
   const [idleThreshold, setIdleThreshold] = useState(10);
-
-  const toggleRate = (id: string) => {
-    setRates((prev) => prev.map((r) => (r.id === id ? { ...r, active: !r.active } : r)));
-  };
-
-  const updateMultiplier = (id: string, val: number) => {
-    setRates((prev) => prev.map((r) => (r.id === id ? { ...r, multiplier: val } : r)));
-  };
-
-  const activeCount = rates.filter((r) => r.active).length;
+  const { weather, loading, error, refetch } = useWeather();
 
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-foreground">⚙️ Configuración de Tarifas</h2>
-        <p className="text-sm text-muted-foreground">Tarifas dinámicas y umbrales de alertas</p>
+        <p className="text-sm text-muted-foreground">Recargo automático por clima y umbrales de alertas</p>
       </div>
+
+      {/* Weather Surcharge */}
+      <Card className={weather?.isRaining ? "border-blue-500/50 bg-blue-500/5" : ""}>
+        <CardHeader className="py-3 px-4 border-b flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            {weather?.isRaining ? (
+              <CloudRain className="h-4 w-4 text-blue-500" />
+            ) : (
+              <Sun className="h-4 w-4 text-yellow-500" />
+            )}
+            Recargo por Clima Adverso
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={refetch}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </CardHeader>
+        <CardContent className="p-4">
+          {error ? (
+            <p className="text-sm text-destructive">Error: {error}</p>
+          ) : loading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Consultando clima…
+            </div>
+          ) : weather ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{weather.weatherLabel}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {weather.temperature}°C · Xalapa, Ver. · Actualizado {weather.lastUpdated}
+                  </p>
+                </div>
+                {weather.isRaining ? (
+                  <Badge className="bg-blue-500 text-white text-xs">+$10 MXN ACTIVO</Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">Sin recargo</Badge>
+                )}
+              </div>
+              <div className="rounded-lg border p-3 bg-muted/30">
+                <p className="text-xs text-muted-foreground">
+                  {weather.isRaining
+                    ? "🌧️ Se detectó lluvia en la zona. Se aplica un recargo automático de $10 MXN a todas las cotizaciones por condiciones climáticas adversas."
+                    : "☀️ No se detecta lluvia en la zona. Las cotizaciones se mantienen sin recargo climático."}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
 
       {/* Alert Thresholds */}
       <Card>
@@ -54,49 +103,6 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Dynamic Rates */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <Zap className="h-4 w-4 text-primary" /> Multiplicadores Dinámicos
-        </h3>
-        <Badge variant="secondary" className="text-xs">{activeCount} activos</Badge>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {rates.map((rate) => (
-          <Card key={rate.id} className={`transition-all ${rate.active ? "border-primary/40 bg-primary/5" : ""}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{rate.icon}</span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{rate.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{rate.description}</p>
-                  </div>
-                </div>
-                <Switch checked={rate.active} onCheckedChange={() => toggleRate(rate.id)} />
-              </div>
-              <div className="flex items-center gap-3">
-                <Label className="text-xs text-muted-foreground shrink-0">Multiplicador</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="1"
-                  max="3"
-                  value={rate.multiplier}
-                  onChange={(e) => updateMultiplier(rate.id, parseFloat(e.target.value) || 1)}
-                  className="h-8 w-20 text-center font-mono text-sm"
-                />
-                <span className="text-xs text-muted-foreground">×</span>
-                {rate.active && (
-                  <Badge className="text-[10px] bg-primary text-primary-foreground ml-auto">ACTIVO</Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }
