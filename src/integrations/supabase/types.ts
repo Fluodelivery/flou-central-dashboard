@@ -56,6 +56,89 @@ export type Database = {
         }
         Relationships: []
       }
+      client_documents: {
+        Row: {
+          client_id: string
+          doc_type: string
+          file_name: string | null
+          file_url: string
+          id: string
+          uploaded_at: string
+        }
+        Insert: {
+          client_id: string
+          doc_type: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          uploaded_at?: string
+        }
+        Update: {
+          client_id?: string
+          doc_type?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "corporate_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corporate_clients: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          monthly_volume: number | null
+          name: string
+          notes: string | null
+          since: string
+          status: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          id: string
+          lat?: number | null
+          lng?: number | null
+          monthly_volume?: number | null
+          name: string
+          notes?: string | null
+          since?: string
+          status?: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          monthly_volume?: number | null
+          name?: string
+          notes?: string | null
+          since?: string
+          status?: string
+        }
+        Relationships: []
+      }
       rider_documents: {
         Row: {
           doc_type: string
