@@ -165,6 +165,21 @@ export default function Metrics() {
     ? `${format(dateFrom, "d MMM", { locale: es })} — ${format(dateTo, "d MMM yy", { locale: es })}`
     : "Selecciona rango";
 
+  const buildExportData = () => ({
+    title: `Métricas Operativas — ${rangeLabel}`,
+    dateRange: rangeLabel,
+    headers: ["Fecha", "Completados", "Cancelados", "Devueltos", "Total", "Revenue", "Tiempo prom (min)", "SLA %", "Costo/entrega", "Utilización %"],
+    rows: dailyData.map(d => [d.date, d.completed, d.cancelled, d.returned, d.total, d.revenue, d.avgTime, d.slaCompliance, d.costPerDelivery, d.riderUtilization]),
+  });
+
+  const handleExport = (type: "csv" | "xlsx" | "pdf" | "doc") => {
+    const data = buildExportData();
+    if (type === "csv") exportToCSV(data);
+    else if (type === "xlsx") exportToExcel(data);
+    else if (type === "pdf") exportToPDF(data);
+    else exportToDoc(data);
+  };
+
   return (
     <div className="space-y-4">
       {/* Header + Date Filter */}
