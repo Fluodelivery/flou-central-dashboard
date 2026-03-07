@@ -137,44 +137,74 @@ export const historicalOrders: HistoricalOrder[] = [
 ];
 
 // ===== FINANZAS =====
-export interface RiderCashout {
+
+// --- Desglose completo de repartidores ---
+export interface RiderFinance {
   riderId: string;
   riderName: string;
-  totalCollected: number;
+  shift: string;
   totalDeliveries: number;
   cashOrders: number;
   cashAmount: number;
+  cardOrders: number;
+  cardAmount: number;
+  transferOrders: number;
+  transferAmount: number;
+  totalCollected: number;
+  walletBalance: number;
+  commissionRate: number;
+  commissionAmount: number;
+  bonuses: number;
+  grossEarnings: number;
+  ivaWithheld: number;
+  isrWithheld: number;
+  netPayout: number;
   owedToCompany: number;
-  status: "pending" | "settled";
-  shift: string;
+  cashoutStatus: "pending" | "settled";
 }
 
-export const riderCashouts: RiderCashout[] = [
-  { riderId: "R-001", riderName: "Carlos Méndez", totalCollected: 540, totalDeliveries: 12, cashOrders: 5, cashAmount: 225, owedToCompany: 225, status: "pending", shift: "Matutino" },
-  { riderId: "R-002", riderName: "Luis Hernández", totalCollected: 380, totalDeliveries: 8, cashOrders: 3, cashAmount: 114, owedToCompany: 114, status: "pending", shift: "Matutino" },
-  { riderId: "R-003", riderName: "Ana Torres", totalCollected: 720, totalDeliveries: 15, cashOrders: 7, cashAmount: 342, owedToCompany: 342, status: "settled", shift: "Matutino" },
-  { riderId: "R-004", riderName: "Miguel Ruiz", totalCollected: 290, totalDeliveries: 6, cashOrders: 4, cashAmount: 180, owedToCompany: 180, status: "pending", shift: "Vespertino" },
-  { riderId: "R-005", riderName: "Fernanda López", totalCollected: 450, totalDeliveries: 10, cashOrders: 2, cashAmount: 96, owedToCompany: 96, status: "settled", shift: "Vespertino" },
+export const riderFinances: RiderFinance[] = [
+  { riderId: "R-001", riderName: "Carlos Méndez", shift: "Matutino", totalDeliveries: 12, cashOrders: 5, cashAmount: 225, cardOrders: 5, cardAmount: 225, transferOrders: 2, transferAmount: 90, totalCollected: 540, walletBalance: 315, commissionRate: 0.20, commissionAmount: 108, bonuses: 50, grossEarnings: 158, ivaWithheld: 25.28, isrWithheld: 15.80, netPayout: 116.92, owedToCompany: 225, cashoutStatus: "pending" },
+  { riderId: "R-002", riderName: "Luis Hernández", shift: "Matutino", totalDeliveries: 8, cashOrders: 3, cashAmount: 114, cardOrders: 3, cardAmount: 152, transferOrders: 2, transferAmount: 114, totalCollected: 380, walletBalance: 266, commissionRate: 0.20, commissionAmount: 76, bonuses: 0, grossEarnings: 76, ivaWithheld: 12.16, isrWithheld: 7.60, netPayout: 56.24, owedToCompany: 114, cashoutStatus: "pending" },
+  { riderId: "R-003", riderName: "Ana Torres", shift: "Matutino", totalDeliveries: 15, cashOrders: 7, cashAmount: 342, cardOrders: 5, cardAmount: 228, transferOrders: 3, transferAmount: 150, totalCollected: 720, walletBalance: 378, commissionRate: 0.22, commissionAmount: 158.40, bonuses: 80, grossEarnings: 238.40, ivaWithheld: 38.14, isrWithheld: 23.84, netPayout: 176.42, owedToCompany: 342, cashoutStatus: "settled" },
+  { riderId: "R-004", riderName: "Miguel Ruiz", shift: "Vespertino", totalDeliveries: 6, cashOrders: 4, cashAmount: 180, cardOrders: 1, cardAmount: 55, transferOrders: 1, transferAmount: 55, totalCollected: 290, walletBalance: 110, commissionRate: 0.20, commissionAmount: 58, bonuses: 0, grossEarnings: 58, ivaWithheld: 9.28, isrWithheld: 5.80, netPayout: 42.92, owedToCompany: 180, cashoutStatus: "pending" },
+  { riderId: "R-005", riderName: "Fernanda López", shift: "Vespertino", totalDeliveries: 10, cashOrders: 2, cashAmount: 96, cardOrders: 5, cardAmount: 204, transferOrders: 3, transferAmount: 150, totalCollected: 450, walletBalance: 354, commissionRate: 0.20, commissionAmount: 90, bonuses: 30, grossEarnings: 120, ivaWithheld: 19.20, isrWithheld: 12.00, netPayout: 88.80, owedToCompany: 96, cashoutStatus: "settled" },
+  { riderId: "R-006", riderName: "Jorge Castillo", shift: "Matutino", totalDeliveries: 9, cashOrders: 4, cashAmount: 198, cardOrders: 3, cardAmount: 135, transferOrders: 2, transferAmount: 90, totalCollected: 423, walletBalance: 225, commissionRate: 0.20, commissionAmount: 84.60, bonuses: 20, grossEarnings: 104.60, ivaWithheld: 16.74, isrWithheld: 10.46, netPayout: 77.40, owedToCompany: 198, cashoutStatus: "pending" },
+  { riderId: "R-007", riderName: "Diana Vargas", shift: "Vespertino", totalDeliveries: 11, cashOrders: 3, cashAmount: 165, cardOrders: 5, cardAmount: 275, transferOrders: 3, transferAmount: 165, totalCollected: 605, walletBalance: 440, commissionRate: 0.22, commissionAmount: 133.10, bonuses: 40, grossEarnings: 173.10, ivaWithheld: 27.70, isrWithheld: 17.31, netPayout: 128.09, owedToCompany: 165, cashoutStatus: "pending" },
 ];
 
+// Legacy exports for backward compatibility
+export type RiderCashout = RiderFinance;
+export const riderCashouts = riderFinances;
+
+// --- Saldos de clientes B2B con suscripción y extras ---
 export interface ClientBalance {
   clientId: string;
   clientName: string;
   period: string;
   totalOrders: number;
+  deliveryTotal: number;
+  subscriptionPlan: string;
+  subscriptionFee: number;
+  extraTools: { name: string; amount: number }[];
+  extrasTotal: number;
+  subtotal: number;
+  iva: number;
   totalAmount: number;
   paid: number;
   balance: number;
   status: "paid" | "partial" | "pending";
   dueDate: string;
+  paymentMethod: string;
+  lastPaymentDate: string | null;
 }
 
 export const clientBalances: ClientBalance[] = [
-  { clientId: "C-001", clientName: "Starbucks Xalapa", period: "Feb 2026", totalOrders: 320, totalAmount: 14400, paid: 14400, balance: 0, status: "paid", dueDate: "2026-03-05" },
-  { clientId: "C-002", clientName: "Farmacias Guadalajara", period: "Feb 2026", totalOrders: 580, totalAmount: 22040, paid: 11020, balance: 11020, status: "partial", dueDate: "2026-03-05" },
-  { clientId: "C-003", clientName: "La Parroquia de Veracruz", period: "Feb 2026", totalOrders: 150, totalAmount: 7500, paid: 0, balance: 7500, status: "pending", dueDate: "2026-03-05" },
-  { clientId: "C-004", clientName: "Notaría Méndez & Asoc.", period: "Feb 2026", totalOrders: 85, totalAmount: 4675, paid: 4675, balance: 0, status: "paid", dueDate: "2026-03-05" },
-  { clientId: "C-005", clientName: "PetLove Veterinaria", period: "Feb 2026", totalOrders: 42, totalAmount: 2520, paid: 0, balance: 2520, status: "pending", dueDate: "2026-03-05" },
+  { clientId: "C-001", clientName: "Starbucks Xalapa", period: "Feb 2026", totalOrders: 320, deliveryTotal: 12160, subscriptionPlan: "Premium", subscriptionFee: 1500, extraTools: [{ name: "API Integración", amount: 500 }, { name: "Reportes Avanzados", amount: 300 }], extrasTotal: 800, subtotal: 14460, iva: 2313.60, totalAmount: 16773.60, paid: 16773.60, balance: 0, status: "paid", dueDate: "2026-03-05", paymentMethod: "Transferencia", lastPaymentDate: "2026-03-02" },
+  { clientId: "C-002", clientName: "Farmacias Guadalajara", period: "Feb 2026", totalOrders: 580, deliveryTotal: 18560, subscriptionPlan: "Enterprise", subscriptionFee: 2500, extraTools: [{ name: "API Integración", amount: 500 }, { name: "Soporte Prioritario", amount: 800 }, { name: "Multi-sucursal", amount: 600 }], extrasTotal: 1900, subtotal: 22960, iva: 3673.60, totalAmount: 26633.60, paid: 13316.80, balance: 13316.80, status: "partial", dueDate: "2026-03-05", paymentMethod: "Factura 30 días", lastPaymentDate: "2026-02-20" },
+  { clientId: "C-003", clientName: "La Parroquia de Veracruz", period: "Feb 2026", totalOrders: 150, deliveryTotal: 6000, subscriptionPlan: "Básico", subscriptionFee: 800, extraTools: [], extrasTotal: 0, subtotal: 6800, iva: 1088, totalAmount: 7888, paid: 0, balance: 7888, status: "pending", dueDate: "2026-03-05", paymentMethod: "Efectivo", lastPaymentDate: null },
+  { clientId: "C-004", clientName: "Notaría Méndez & Asoc.", period: "Feb 2026", totalOrders: 85, deliveryTotal: 3825, subscriptionPlan: "Básico", subscriptionFee: 800, extraTools: [{ name: "Reportes Avanzados", amount: 300 }], extrasTotal: 300, subtotal: 4925, iva: 788, totalAmount: 5713, paid: 5713, balance: 0, status: "paid", dueDate: "2026-03-05", paymentMethod: "Transferencia", lastPaymentDate: "2026-03-01" },
+  { clientId: "C-005", clientName: "PetLove Veterinaria", period: "Feb 2026", totalOrders: 42, deliveryTotal: 2100, subscriptionPlan: "Básico", subscriptionFee: 800, extraTools: [], extrasTotal: 0, subtotal: 2900, iva: 464, totalAmount: 3364, paid: 0, balance: 3364, status: "pending", dueDate: "2026-03-05", paymentMethod: "Transferencia", lastPaymentDate: null },
 ];
 
 // ===== TARIFAS DINÁMICAS =====
